@@ -1,0 +1,49 @@
+html, body {
+	height: 100%;
+	width: 100%;
+}
+
+table {
+	margin: auto;
+}
+
+/*GAME CSS*/
+
+#board {
+	width: 480px;
+	height: 480px;
+	background-image: url("/assets/chessInterface/static/images/board.png");
+	background-repeat: no-repeat;
+	background-size: 480px 480px;
+	position: relative;
+}
+
+#main > div {
+	text-align: center;
+	margin: auto;
+}
+
+#board > div {
+	height: 60px;
+	width: 60px;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	cursor: default;
+	-webkit-animation-duration: .5s;
+    animation-duration: .5s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
+
+ @keyframes fade-in {
+    0% {
+       opacity: 0;
+    }
+    50% {
+       opacity: 0.5;
+    }
+    100%{
+    	opacity: 1;
+    }
+ }

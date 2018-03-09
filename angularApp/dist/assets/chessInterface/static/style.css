@@ -1,0 +1,14 @@
+#board {
+	width: 480px;
+	height: 480px;
+	background-image: url("images/board.png");
+	background-repeat: no-repeat;
+	background-size: 480px 480px;
+}
+
+#board > div {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	cursor: default;
+}

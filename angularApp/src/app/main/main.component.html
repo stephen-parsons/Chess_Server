@@ -1,0 +1,40 @@
+<div class="outer">
+  <div class="middle">
+    <div class="inner text-center">
+
+      <h1>Let's Play</h1>
+
+      <button *ngIf="color==false" (click)="selectColor()">New game</button>
+
+      <div *ngIf="color==true" id='select-color'>
+      	<h3>Select color: </h3>
+      	<p><button (click)="onClickNewGame('white')">White</button></p>
+      	<p><button (click)="onClickNewGame('black')">Black</button></p>
+      </div>	
+
+      <button (click)="getGames()">View available games</button>
+
+      <div *ngIf="gotAllGames==true" id="allGames">
+      	<table>
+      		<tr>
+	      		<th>Game ID</th>
+	      		<th>White</th>
+	      		<th>Black</th>
+	      		<th>Action</th>
+      		</tr>
+      	
+      		<tr *ngFor="let game of allGames">
+      			<td>{{game._id}}</td>
+      			<td>{{game.white}}</td>
+      			<td>{{game.black}}</td>
+      			<!-- <td><a href="/game/{{game._id}}"><button>Play!</button></a></td> -->
+      			<td *ngIf="!game.white"><button (click)="joinGame('white', game._id)">Play!</button></td>
+      			<td *ngIf="!game.black"><button (click)="joinGame('black', game._id)">Play!</button></td>
+      			<td *ngIf="game.black && game.white"><button (click)="viewGame()">View game!</button></td>
+      		</tr>
+      	</table>
+      </div>
+
+    </div>
+  </div>
+</div>
