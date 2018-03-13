@@ -2,6 +2,9 @@
 //Chess Interface
 //2018
 
+// SET IP ADDRESS FOR HOSTING
+var ipaddress = '192.168.1.81:8000'
+
 //!! TO DO 
 
 // - SET RULES FOR STALEMATE, 50 MOVE RULE, 3 FOLD REPETITION
@@ -1473,8 +1476,44 @@ function checkMate(){
 			return true;
 		}
 	}
-	else {
-		return false;
+	else if (turn.inCheck == false){
+		//CHECK IF ANY PIECE HAS LEGAL PAWN MOVES OR TARGET SQUARES
+		//IF NONE THEN STALEMATE
+		for (let somePiece of playerPieces){
+			if (turn.pieces[somePiece].name.includes("Pawn")){
+				if (turn.pieces[somePiece].legalMoves.length != 0){
+					return false;
+				}
+			}
+			else if (turn.pieces[somePiece].name !== "King"){
+				if (turn.pieces[somePiece].targetSquares.length != 0){
+					return false;
+				}	
+			}
+			else if (turn.pieces[somePiece].name === "King"){
+				if (turn.pieces[somePiece].targetSquares.length != 0){
+					//CHECK IF TARGET SQUARE MOVE LEADS TO MATE
+					for (let square of turn.pieces[somePiece].targetSquares){
+						if (square.piece != null){
+							var moveThisPiece = movePiece(turn.pieces[somePiece], board[square], turn, true, square.piece, true);
+						}
+						else {
+							var moveThisPiece = movePiece(turn.pieces[somePiece], board[square], turn, true, "null", true);
+						}
+						if (moveThisPiece == true){
+							console.log("SAFE SQUARE")
+							return false;
+						}
+					}
+					console.log("STALEMATE!")
+					return "Stalemate";	
+				}
+				else {
+					console.log("STALEMATE!")
+					return "Stalemate";
+				}
+			}
+		}
 	}	
 }
 
@@ -1553,7 +1592,7 @@ function setListeners(){
 function getGameData(cb){
 	gameId = window.location.href.split("/");
 	gameId = gameId[gameId.length-1]
-	$.get('http://192.168.1.13:8000/game/get/'+gameId, function(data){
+	$.get('http://'+ipaddress+'/game/get/'+gameId, function(data){
 		console.log(data[0]);
 
 		let game = data[0]
@@ -1583,7 +1622,7 @@ function postGameData(data, cb){
 
 	parsedData = CircularJSON.parse(data);
 	gameDataToSendToMongoDB = {"_id": parsedData._id, "unparsedData": data}
-	$.post('http://192.168.1.13:8000/game/update/', gameDataToSendToMongoDB, function(data){
+	$.post('http://'+ipaddress+'/game/update/', gameDataToSendToMongoDB, function(data){
 		// console.log("POST GAME DATA :", data);
 		cb(data);
 	});
@@ -1812,7 +1851,7 @@ function upListener (e){
 		//CHECK FOR MATE
 
 		mate = checkMate()
-		if (mate == true){
+		if (mate == true || mate === "Stalemate"){
 			gameReady = false;
 			disableDrag();
 		}
