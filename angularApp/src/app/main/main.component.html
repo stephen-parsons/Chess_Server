@@ -28,9 +28,9 @@
       			<td>{{game.white}}</td>
       			<td>{{game.black}}</td>
       			<!-- <td><a href="/game/{{game._id}}"><button>Play!</button></a></td> -->
-      			<td *ngIf="!game.white"><button (click)="joinGame('white', game._id)">Play!</button></td>
-      			<td *ngIf="!game.black"><button (click)="joinGame('black', game._id)">Play!</button></td>
-      			<td *ngIf="game.black && game.white"><button (click)="viewGame()">View game!</button></td>
+      			<td *ngIf="!game.white"><button (click)="joinGame('white', game._id)">Play as white!</button></td>
+      			<td *ngIf="!game.black"><button (click)="joinGame('black', game._id)">Play as black!</button></td>
+      			<td *ngIf="game.black && game.white"><button (click)="viewGame(game._id)">View game!</button></td>
       		</tr>
       	</table>
       </div>

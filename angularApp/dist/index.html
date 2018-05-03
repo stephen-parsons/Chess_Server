@@ -20,62 +20,17 @@
   	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
   	<!-- SOCKETS -->
-  	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+<!--   	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
     <script src="/assets/socket.io.js"></script>
-    <script src="/assets/angular-sockets.js"></script>
+    <script src="/assets/angular-sockets.js"></script> -->
 
     <script src="/assets/circular-json.js"></script>
 
-    <script type="text/javascript" src="/assets/chessInterface/interface.js"></script>
-
-    <script type="application/javascript">
-
-		var CircularJSON = window.CircularJSON;
-
-    	var playerColor;
-
-    	var socketId;
-
-    	var app = angular.module('socketApp', [ 'socket.io' ]);
-	    
-	    app.config(function ($socketProvider) {
-	    	// console.log(('http://localhost:8000/game/'+gameId))
-	        $socketProvider.setConnectionUrl('http://192.168.1.13:8000/');
-	    });
-	    
-	    app.controller('Ctrl', function Ctrl($scope, $socket) {
-	    	console.log(window.location.href)
-
-	        $socket.on('playerConnected', function (data) {
-	        	console.log("Player "+data+" connected!");
-	        	//assign player
-	        	// playerColor = data;
-	        	socketId = data;
-	        	$scope.socketId = data;
-	        });
-
-	        $socket.on('recieveMove', function(dataBack){	
-            	// console.log("Move Data :", dataBack)
-            	updateGame(CircularJSON.parse(dataBack));
-            	console.log("Updated board game!");
-            	postGameData(dataBack, (game)=>{
-					// console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
-					setListeners();
-				});
-            });	
-
-	        $scope.sendMove = function sendMove(data) {
-	            // console.log('sending move: ', data);
-	            $socket.emit('sendMove', data, function(cb){
-	            	console.log(cb);
-	            });
-	        };
-	    });
-    	
-	</script>
+    
 
 </head>
 <body>
-  <app-root ng-app="socketApp" ng-controller="Ctrl"></app-root>
+<!--   <app-root ng-app="socketApp" ng-controller="Ctrl"></app-root> -->
+  <app-root></app-root>
 <script type="text/javascript" src="inline.bundle.js"></script><script type="text/javascript" src="polyfills.bundle.js"></script><script type="text/javascript" src="styles.bundle.js"></script><script type="text/javascript" src="vendor.bundle.js"></script><script type="text/javascript" src="main.bundle.js"></script></body>
 </html>

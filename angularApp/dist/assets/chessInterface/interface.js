@@ -3,7 +3,7 @@
 //2018
 
 // SET IP ADDRESS FOR HOSTING
-var ipaddress = '192.168.1.81:8000'
+var ipaddress = 'localhost:8000'
 
 //!! TO DO 
 
@@ -23,7 +23,8 @@ var ipaddress = '192.168.1.81:8000'
 // var CircularJSON = window.CircularJSON;
 
 // VARIABLES
-var gameId = document.currentScript.getAttribute("id");
+var gameId = document.currentScript.getAttribute("id").split('/')[0];
+var playerColor = document.currentScript.getAttribute("id").split('/')[1];
 
 //Board - 8x8 dictionary of square objects
 var board = {}
@@ -1540,7 +1541,10 @@ function setMessages(){
 	else {
 		checkTurn = "black";
 	}
-	if (playerColor == checkTurn){
+	if (playerColor == "Viewing"){
+		$("#messages").html("<p>Press left or right to view moves!</p>")
+	}
+	else if (playerColor == checkTurn){
 		if (turn.inCheck == true){
 			$("#messages").html("<h1>You're in check!</h1>")
 		}
@@ -1556,7 +1560,7 @@ function setMessages(){
 			$("#messages").html("<h1>Opponent's move!</h1>")
 		}
 	}
-	if (gameReady == false){
+	if (gameReady == false && !playerColor == "Viewing"){
 		$("#messages").html("<h1>CHECKMATE!</h1>")	
 	}
 }
@@ -1570,7 +1574,13 @@ function readyMove(){
 		
 		// console.log(game);
 		setMessages();
-		if (gameReady == false){
+		if (playerColor == "Viewing"){
+			gameReady = false;
+			console.log("Viewing game");
+			$("#player").html("<h1>Viewing game</h1>");
+			setViewListeners();
+		}
+		else if (gameReady == false){
 			console.log("GAME OVER!")		
 		}
 		else{
@@ -1587,6 +1597,22 @@ function setListeners(){
 		enableDrag();
 	}
 	$("#board > div").mousedown(downListener).mouseup(upListener);
+}
+
+function setViewListeners(){
+	console.log(moveList);
+	if (gameReady == false){
+		document.addEventListener('keyup', function(e){
+			if (e.keyCode == 37){
+				//
+			}
+			else if (e.keyCode == 39){
+				//
+			}
+	    	//37 left, 39 right
+			console.log("View listeners set");
+		})
+	}
 }
 
 function getGameData(cb){
@@ -1608,7 +1634,7 @@ function getGameData(cb){
 		else {
 			//UNPARSE DATA FROM DB
 			game = CircularJSON.parse(data[0].moveList);
-			updateGame(game);
+			updateGame(game.moveList);
 		}
 		cb(game);
 	});
@@ -1628,18 +1654,18 @@ function postGameData(data, cb){
 	});
 }
 
-function updateGame(game){
+function updateGame(movelist){
 	// game = CircularJSON.parse(game);
 
 	//SET LOCAL VARS TO GAME DATA FROM DB
 
-	moveList = game.moveList;
-	white = game.moveList.tail.white;
-	black = game.moveList.tail.black;
-	board = game.moveList.tail.board;
-	gameReady = game.moveList.tail.gameReady;
-	moveNumber = game.moveList.tail.moveNumber;
-	if (game.moveList.tail.turn == "white"){
+	moveList = movelist;
+	white = movelist.tail.white;
+	black = movelist.tail.black;
+	board = movelist.tail.board;
+	gameReady = movelist.tail.gameReady;
+	moveNumber = movelist.tail.moveNumber;
+	if (movelist.tail.turn == "white"){
 		turn = white;
 	}
 	else {
@@ -1877,7 +1903,7 @@ function upListener (e){
 
 var playerDiv = $("#player").html();
 
-// $(document).ready(function(){
-
-// })	
+$(document).ready(function(){
+	initializeGame();
+})	
 

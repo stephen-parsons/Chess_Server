@@ -221,7 +221,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/game/game.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<!-- LOAD SOCKET SCRIPT -->\n<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
+module.exports = "<!-- <script type=\"application/javascript\">\n\n\tvar CircularJSON = window.CircularJSON;\n\n\tvar ipaddress = 'localhost:8000'\n\n\tvar playerColor;\n\n\tvar socketId;\n\n\tvar app = angular.module('socketApp', [ 'socket.io' ]);\n    \n    app.config(function ($socketProvider) {\n    \tconsole.log('http://'+ipaddress+'/'+{{id}});\n        $socketProvider.setConnectionUrl('http://'+ipaddress+'/'+{{id}});\n    });\n    \n    app.controller('Ctrl', function Ctrl($scope, $socket) {\n    \tconsole.log(window.location.href)\n\n        $socket.on('playerConnected', function (data) {\n        \tconsole.log(\"Player \"+data+\" connected!\");\n        \t//assign player\n        \tsocketId = data;\n        });\n\n        $socket.on('recieveMove', function(dataBack){\t\n        \t// console.log(\"Move Data :\", dataBack)\n        \tupdateGame(CircularJSON.parse(dataBack));\n        \tconsole.log(\"Updated board game!\");\n        \tpostGameData(dataBack, (game)=>{\n\t\t\t\t// console.log(\"POST GAME DATA :\", CircularJSON.parse(game.moveList));\n\t\t\t\tsetListeners();\n\t\t\t});\n        });\t\n\n        $scope.sendMove = function sendMove(data) {\n            // console.log('sending move: ', data);\n            $socket.emit('sendMove', data, function(cb){\n            \tconsole.log(cb);\n            });\n        };\n    });\n\t\n</script> -->\n\n<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
 
 /***/ }),
 
@@ -243,30 +243,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var core_1 = __webpack_require__("../../../core/esm5/core.js");
 var game_service_1 = __webpack_require__("../../../../../src/app/game.service.ts");
 var router_1 = __webpack_require__("../../../router/esm5/router.js");
+var io = __webpack_require__("../../../../socket.io-client/lib/index.js");
 var GameComponent = /** @class */ (function () {
-    function GameComponent(route, _gameService) {
+    function GameComponent(route, _gameService, _router) {
         this.route = route;
         this._gameService = _gameService;
+        this._router = _router;
+        this.socket = io.connect();
     }
     GameComponent.prototype.ngOnInit = function () {
         var _this = this;
-        this.socketId = socketId;
+        this.socket.on('playerConnected', function (data) {
+            console.log("Player " + data + " connected!");
+            //assign player
+            this.socketId = data;
+        });
         this.sub = this.route.params.subscribe(function (params) {
             _this.id = params['id'];
             //GET GAME FROM SERVICE BASED ON URL
             _this._gameService.getGame(_this.id).subscribe(function (data) {
                 console.log(data);
-                if (data[0].white == _this.socketId) {
-                    playerColor = "white";
+                _this.game = data[0];
+                if (_this.game.white == null && _this.game.black == null) {
+                    _this._router.navigate(['/']);
                 }
-                else if (data[0].black == _this.socketId) {
-                    playerColor = "black";
+                if (_this.game.white == "taken") {
+                    _this.playerColor = "white";
+                    _this.game.white = "gameStarted";
                 }
-                else
-                    (playerColor == "Viewing");
+                else if (_this.game.black == "taken") {
+                    _this.playerColor = "black";
+                    _this.game.black = "gameStarted";
+                }
+                else if (_this.game.white == "gameStarted" && _this.game.black == "gameStarted") {
+                    _this.playerColor = "Viewing";
+                }
+                _this._gameService.updatePlayer(_this.game).subscribe(function (data) {
+                    console.log(data);
+                    _this.loadInterfaceScript();
+                    console.log(_this.playerColor);
+                });
             });
-            // this.loadInterfaceScript();
-            initializeGame();
         });
     };
     GameComponent.prototype.loadInterfaceScript = function () {
@@ -274,9 +291,9 @@ var GameComponent = /** @class */ (function () {
         var body = document.getElementById('main');
         this.script = document.createElement('script');
         this.script.innerHTML = '';
-        this.script.id = this.id;
+        this.script.id = this.id + '/' + this.playerColor;
         this.script.src = '/assets/chessInterface/interface.js';
-        // this.script.async = true;
+        this.script.async = true;
         this.script.defer = true;
         body.appendChild(this.script);
     };
@@ -286,7 +303,7 @@ var GameComponent = /** @class */ (function () {
             template: __webpack_require__("../../../../../src/app/game/game.component.html"),
             styles: [__webpack_require__("../../../../../src/app/game/game.component.css")]
         }),
-        __metadata("design:paramtypes", [router_1.ActivatedRoute, game_service_1.GameService])
+        __metadata("design:paramtypes", [router_1.ActivatedRoute, game_service_1.GameService, router_1.Router])
     ], GameComponent);
     return GameComponent;
 }());
@@ -316,7 +333,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/main/main.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"outer\">\n  <div class=\"middle\">\n    <div class=\"inner text-center\">\n\n      <h1>Let's Play</h1>\n\n      <button *ngIf=\"color==false\" (click)=\"selectColor()\">New game</button>\n\n      <div *ngIf=\"color==true\" id='select-color'>\n      \t<h3>Select color: </h3>\n      \t<p><button (click)=\"onClickNewGame('white')\">White</button></p>\n      \t<p><button (click)=\"onClickNewGame('black')\">Black</button></p>\n      </div>\t\n\n      <button (click)=\"getGames()\">View available games</button>\n\n      <div *ngIf=\"gotAllGames==true\" id=\"allGames\">\n      \t<table>\n      \t\t<tr>\n\t      \t\t<th>Game ID</th>\n\t      \t\t<th>White</th>\n\t      \t\t<th>Black</th>\n\t      \t\t<th>Action</th>\n      \t\t</tr>\n      \t\n      \t\t<tr *ngFor=\"let game of allGames\">\n      \t\t\t<td>{{game._id}}</td>\n      \t\t\t<td>{{game.white}}</td>\n      \t\t\t<td>{{game.black}}</td>\n      \t\t\t<!-- <td><a href=\"/game/{{game._id}}\"><button>Play!</button></a></td> -->\n      \t\t\t<td *ngIf=\"!game.white\"><button (click)=\"joinGame('white', game._id)\">Play!</button></td>\n      \t\t\t<td *ngIf=\"!game.black\"><button (click)=\"joinGame('black', game._id)\">Play!</button></td>\n      \t\t\t<td *ngIf=\"game.black && game.white\"><button (click)=\"viewGame()\">View game!</button></td>\n      \t\t</tr>\n      \t</table>\n      </div>\n\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"outer\">\n  <div class=\"middle\">\n    <div class=\"inner text-center\">\n\n      <h1>Let's Play</h1>\n\n      <button *ngIf=\"color==false\" (click)=\"selectColor()\">New game</button>\n\n      <div *ngIf=\"color==true\" id='select-color'>\n      \t<h3>Select color: </h3>\n      \t<p><button (click)=\"onClickNewGame('white')\">White</button></p>\n      \t<p><button (click)=\"onClickNewGame('black')\">Black</button></p>\n      </div>\t\n\n      <button (click)=\"getGames()\">View available games</button>\n\n      <div *ngIf=\"gotAllGames==true\" id=\"allGames\">\n      \t<table>\n      \t\t<tr>\n\t      \t\t<th>Game ID</th>\n\t      \t\t<th>White</th>\n\t      \t\t<th>Black</th>\n\t      \t\t<th>Action</th>\n      \t\t</tr>\n      \t\n      \t\t<tr *ngFor=\"let game of allGames\">\n      \t\t\t<td>{{game._id}}</td>\n      \t\t\t<td>{{game.white}}</td>\n      \t\t\t<td>{{game.black}}</td>\n      \t\t\t<!-- <td><a href=\"/game/{{game._id}}\"><button>Play!</button></a></td> -->\n      \t\t\t<td *ngIf=\"!game.white\"><button (click)=\"joinGame('white', game._id)\">Play as white!</button></td>\n      \t\t\t<td *ngIf=\"!game.black\"><button (click)=\"joinGame('black', game._id)\">Play as black!</button></td>\n      \t\t\t<td *ngIf=\"game.black && game.white\"><button (click)=\"viewGame(game._id)\">View game!</button></td>\n      \t\t</tr>\n      \t</table>\n      </div>\n\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -344,7 +361,7 @@ var MainComponent = /** @class */ (function () {
         this._router = _router;
     }
     MainComponent.prototype.ngOnInit = function () {
-        this.game = {};
+        this.game = { white: null, black: null };
         this.color = false;
         this.allGames = [];
         this.gotAllGames = false;
@@ -361,10 +378,10 @@ var MainComponent = /** @class */ (function () {
         var _this = this;
         // this.game.moveList = null;
         if (color == "white") {
-            this.game.white = socketId;
+            this.game.white = "taken";
         }
         else if (color == "black") {
-            this.game.black = socketId;
+            this.game.black = "taken";
         }
         this._gameService.createGame(this.game).subscribe(function (data) {
             console.log("DATA: " + data);
@@ -378,7 +395,7 @@ var MainComponent = /** @class */ (function () {
         var _this = this;
         this.color = false;
         this._gameService.getAllGames().subscribe(function (data) {
-            // console.log(data);
+            console.log(data);
             _this.allGames = data;
             if (_this.allGames.length != 0) {
                 _this.gotAllGames = true;
@@ -388,19 +405,32 @@ var MainComponent = /** @class */ (function () {
     MainComponent.prototype.joinGame = function (color, id) {
         var _this = this;
         this._gameService.getGame(id).subscribe(function (game) {
-            game = game[0];
+            _this.game = game[0];
             // console.log(game);
             if (color == "white") {
-                game.white = socketId;
+                if (_this.game.white == "taken") {
+                    return;
+                }
+                else {
+                    _this.game.white = "taken";
+                }
             }
             else if (color == "black") {
-                game.black = socketId;
+                if (_this.game.black == "taken") {
+                    return;
+                }
+                else {
+                    _this.game.black = "taken";
+                }
             }
-            _this._gameService.updatePlayer(game).subscribe(function (data) {
+            _this._gameService.updatePlayer(_this.game).subscribe(function (data) {
                 console.log(data);
                 _this._router.navigate(['/game/' + id]);
             });
         });
+    };
+    MainComponent.prototype.viewGame = function (id) {
+        this._router.navigate(['/game/' + id]);
     };
     MainComponent = __decorate([
         core_1.Component({
@@ -458,6 +488,13 @@ platform_browser_dynamic_1.platformBrowserDynamic().bootstrapModule(app_module_1
 
 module.exports = __webpack_require__("../../../../../src/main.ts");
 
+
+/***/ }),
+
+/***/ 1:
+/***/ (function(module, exports) {
+
+/* (ignored) */
 
 /***/ })
 

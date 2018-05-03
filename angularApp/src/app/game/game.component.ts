@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GameService } from '../game.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as io from 'socket.io-client';
 
 @Component({
   selector: 'app-game',
@@ -9,7 +10,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class GameComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute, private _gameService: GameService) { }
+  constructor(private route: ActivatedRoute, private _gameService: GameService, private _router: Router) { 
+    this.socket = io.connect();
+  }
+
+  socket: SocketIOClient.Socket;
 
   private sub: any;
 
@@ -19,25 +24,42 @@ export class GameComponent implements OnInit {
 
   private script: any;
 
-  private socketId: any;
+  playerColor: string;
+
+  socketId: any;
 
   ngOnInit() {
-      this.socketId = socketId
-  		this.sub = this.route.params.subscribe(params => {
-      	this.id = params['id'];
-      	//GET GAME FROM SERVICE BASED ON URL
-        this._gameService.getGame(this.id).subscribe(data=>{
-          console.log(data);
-          if (data[0].white == this.socketId){
-            playerColor = "white";
-          }
-          else if(data[0].black == this.socketId){
-            playerColor = "black";
-          }
-          else (playerColor == "Viewing")
+    this.socket.on('playerConnected', function (data) {
+      console.log("Player "+data+" connected!");
+      //assign player
+      this.socketId = data;
+    });
+		this.sub = this.route.params.subscribe(params => {
+    	this.id = params['id'];
+    	//GET GAME FROM SERVICE BASED ON URL
+      this._gameService.getGame(this.id).subscribe(data=>{
+        console.log(data);
+        this.game = data[0]
+        if (this.game.white == null && this.game.black == null) {
+          this._router.navigate(['/']);
+        }
+        if (this.game.white == "taken"){
+          this.playerColor = "white";
+          this.game.white = "gameStarted";
+        }
+        else if(this.game.black == "taken"){
+          this.playerColor = "black";
+          this.game.black = "gameStarted";
+        }
+        else if (this.game.white == "gameStarted" && this.game.black == "gameStarted") {
+          this.playerColor = "Viewing"
+        }
+        this._gameService.updatePlayer(this.game).subscribe(data=>{
+          console.log(data);  
+          this.loadInterfaceScript();
+          console.log(this.playerColor)
         })
-        // this.loadInterfaceScript();
-        initializeGame();
+      })
     });
   }
 
@@ -46,9 +68,9 @@ export class GameComponent implements OnInit {
     let body = document.getElementById('main')
     this.script = document.createElement('script');
     this.script.innerHTML = '';
-    this.script.id = this.id
+    this.script.id = this.id+'/'+this.playerColor;
     this.script.src = '/assets/chessInterface/interface.js';
-    // this.script.async = true;
+    this.script.async = true;
     this.script.defer = true;
     body.appendChild(this.script);
   }

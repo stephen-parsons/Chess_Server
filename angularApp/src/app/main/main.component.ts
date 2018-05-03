@@ -20,7 +20,7 @@ export class MainComponent implements OnInit {
   private color: any;
 
   ngOnInit() {
-  	this.game = {};
+  	this.game = {white: null, black: null};
     this.color = false;
     this.allGames = [];
     this.gotAllGames = false;
@@ -39,10 +39,10 @@ export class MainComponent implements OnInit {
   createGameFromService(color){
    	// this.game.moveList = null;
     if (color == "white"){
-      this.game.white = socketId;
+      this.game.white = "taken";
     }
     else if (color == "black") {
-      this.game.black = socketId;
+      this.game.black = "taken";
     }
   	this._gameService.createGame(this.game).subscribe(data=>{
   		console.log("DATA: "+data);
@@ -56,7 +56,7 @@ export class MainComponent implements OnInit {
   getGames(){
     this.color = false;
     this._gameService.getAllGames().subscribe(data=>{
-      // console.log(data);
+      console.log(data);
       this.allGames = data;
       if (this.allGames.length != 0){
         this.gotAllGames = true;
@@ -66,19 +66,33 @@ export class MainComponent implements OnInit {
 
   joinGame(color, id){
     this._gameService.getGame(id).subscribe(game=>{
-      game = game[0]
+      this.game = game[0]
       // console.log(game);
       if (color == "white"){
-        game.white = socketId;
+        if (this.game.white == "taken"){
+          return;
+        }
+        else {
+          this.game.white = "taken";
+        }
       }
       else if (color == "black") {
-        game.black = socketId;
+        if (this.game.black == "taken"){
+          return;
+        }
+        else {
+          this.game.black = "taken";
+        }
       }
-      this._gameService.updatePlayer(game).subscribe(data=>{
+      this._gameService.updatePlayer(this.game).subscribe(data=>{
         console.log(data);  
         this._router.navigate(['/game/'+id]);
       })
     })
+  }
+
+  viewGame(id){
+    this._router.navigate(['/game/'+id]);
   }
 
 }

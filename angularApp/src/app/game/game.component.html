@@ -1,4 +1,49 @@
-<!-- LOAD SOCKET SCRIPT -->
+<!-- <script type="application/javascript">
+
+	var CircularJSON = window.CircularJSON;
+
+	var ipaddress = 'localhost:8000'
+
+	var playerColor;
+
+	var socketId;
+
+	var app = angular.module('socketApp', [ 'socket.io' ]);
+    
+    app.config(function ($socketProvider) {
+    	console.log('http://'+ipaddress+'/'+{{id}});
+        $socketProvider.setConnectionUrl('http://'+ipaddress+'/'+{{id}});
+    });
+    
+    app.controller('Ctrl', function Ctrl($scope, $socket) {
+    	console.log(window.location.href)
+
+        $socket.on('playerConnected', function (data) {
+        	console.log("Player "+data+" connected!");
+        	//assign player
+        	socketId = data;
+        });
+
+        $socket.on('recieveMove', function(dataBack){	
+        	// console.log("Move Data :", dataBack)
+        	updateGame(CircularJSON.parse(dataBack));
+        	console.log("Updated board game!");
+        	postGameData(dataBack, (game)=>{
+				// console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+				setListeners();
+			});
+        });	
+
+        $scope.sendMove = function sendMove(data) {
+            // console.log('sending move: ', data);
+            $socket.emit('sendMove', data, function(cb){
+            	console.log(cb);
+            });
+        };
+    });
+	
+</script> -->
+
 <div id="main">
 	<div id="player"></div>
 	<div id="board"></div>
