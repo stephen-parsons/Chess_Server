@@ -2,17 +2,18 @@
   <div class="middle">
     <div class="inner text-center">
 
+      <h1>Stephen's Chess Server</h1>
+
       <h1>Let's Play</h1>
 
-      <button *ngIf="color==false" (click)="selectColor()">New game</button>
+      <p><button *ngIf="color==false" (click)="selectColor()">New game</button></p>
+      <p><button *ngIf="gotAllGames==false" (click)="getGames()">View available games</button></p>
 
       <div *ngIf="color==true" id='select-color'>
       	<h3>Select color: </h3>
       	<p><button (click)="onClickNewGame('white')">White</button></p>
       	<p><button (click)="onClickNewGame('black')">Black</button></p>
       </div>	
-
-      <button (click)="getGames()">View available games</button>
 
       <div *ngIf="gotAllGames==true" id="allGames">
       	<table>
@@ -21,9 +22,10 @@
 	      		<th>White</th>
 	      		<th>Black</th>
 	      		<th>Action</th>
+            <th>Delete</th>
       		</tr>
       	
-      		<tr *ngFor="let game of allGames">
+      		<tr *ngFor="let game of allGames; let i = index;">
       			<td>{{game._id}}</td>
       			<td>{{game.white}}</td>
       			<td>{{game.black}}</td>
@@ -31,6 +33,7 @@
       			<td *ngIf="!game.white"><button (click)="joinGame('white', game._id)">Play as white!</button></td>
       			<td *ngIf="!game.black"><button (click)="joinGame('black', game._id)">Play as black!</button></td>
       			<td *ngIf="game.black && game.white"><button (click)="viewGame(game._id)">View game!</button></td>
+            <td><button (click)="deleteOneGame(i)">Delete Game</button></td>
       		</tr>
       	</table>
       </div>

@@ -27,6 +27,11 @@ module.exports = function(app){
     return game.updatePlayer(req, res);
   })
 
+  app.delete('/game/delete/:id', function(req,res){
+    // console.log("REQ: ", req.body)
+    return game.deleteGame(req, res, req.params.id);
+  })
+
   //LOGIN
 
   // app.post('/user/login', function(req,res){

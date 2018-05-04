@@ -79,6 +79,9 @@ export class GameComponent implements OnInit {
         else if (this.game.white == "gameStarted" && this.game.black == "gameStarted") {
           this.playerColor = "Viewing"
         }
+        else if (this.game.white != "gameStarted" || this.game.black != "gameStarted") {
+          this.playerColor = "Viewing"
+        }
         this._gameService.updatePlayer(this.game).subscribe(data=>{
           console.log(data);  
           this.loadInterfaceScript();
@@ -87,6 +90,12 @@ export class GameComponent implements OnInit {
       })
     });
   }
+
+  // ngOnDestroy(){
+  //   console.log(this.script.id);
+  //   let temp = document.getElementById(this.script.id);
+  //   temp.parentNode.removeChild(temp);
+  // }
 
   //add socket functions here
 

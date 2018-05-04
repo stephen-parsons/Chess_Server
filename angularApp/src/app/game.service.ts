@@ -22,4 +22,8 @@ export class GameService {
     return this._http.post("game/update/player", game)
   }
 
+  deleteGame(id){
+    return this._http.delete(("game/delete/"+id))
+  }
+
 }

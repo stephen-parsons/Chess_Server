@@ -76,7 +76,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<h1>Stephen's Chess Server</h1>\n<router-outlet></router-outlet>\n\n\n\n"
+module.exports = "<div class=\"container\" style=\"height: 100%;\">\n\t<router-outlet></router-outlet>\n</div>\n\n\n\n"
 
 /***/ }),
 
@@ -189,6 +189,9 @@ var GameService = /** @class */ (function () {
     GameService.prototype.updatePlayer = function (game) {
         return this._http.post("game/update/player", game);
     };
+    GameService.prototype.deleteGame = function (id) {
+        return this._http.delete(("game/delete/" + id));
+    };
     GameService = __decorate([
         core_1.Injectable(),
         __metadata("design:paramtypes", [http_1.HttpClient])
@@ -208,7 +211,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, "#main {\n\tpadding-top: 10%;\n}", ""]);
 
 // exports
 
@@ -294,6 +297,9 @@ var GameComponent = /** @class */ (function () {
                 else if (_this.game.white == "gameStarted" && _this.game.black == "gameStarted") {
                     _this.playerColor = "Viewing";
                 }
+                else if (_this.game.white != "gameStarted" || _this.game.black != "gameStarted") {
+                    _this.playerColor = "Viewing";
+                }
                 _this._gameService.updatePlayer(_this.game).subscribe(function (data) {
                     console.log(data);
                     _this.loadInterfaceScript();
@@ -302,6 +308,11 @@ var GameComponent = /** @class */ (function () {
             });
         });
     };
+    // ngOnDestroy(){
+    //   console.log(this.script.id);
+    //   let temp = document.getElementById(this.script.id);
+    //   temp.parentNode.removeChild(temp);
+    // }
     //add socket functions here
     //send move
     GameComponent.prototype.sendMove = function (data) {
@@ -345,7 +356,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".outer {\n    display: table;\n    position: absolute;\n    height: 100%;\n    width: 100%;\n}\n\n.middle {\n    display: table-cell;\n    vertical-align: middle;\n}\n\n.inner {\n    margin-left: auto;\n    margin-right: auto; \n    width: auto; /*whatever width you want*/\n}", ""]);
+exports.push([module.i, ".outer {\n    display: table;\n    position: absolute;\n    height: 100%;\n    width: 100%;\n}\n\n.middle {\n    display: table-cell;\n    vertical-align: middle;\n}\n\n.inner {\n    margin-left: auto;\n    margin-right: auto; \n    width: auto; /*whatever width you want*/\n}\n\nh1 {\n\tmargin-bottom: 5%;\n}\n\nbutton {\n\tmargin-bottom: 10px;\n}", ""]);
 
 // exports
 
@@ -358,7 +369,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/main/main.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"outer\">\n  <div class=\"middle\">\n    <div class=\"inner text-center\">\n\n      <h1>Let's Play</h1>\n\n      <button *ngIf=\"color==false\" (click)=\"selectColor()\">New game</button>\n\n      <div *ngIf=\"color==true\" id='select-color'>\n      \t<h3>Select color: </h3>\n      \t<p><button (click)=\"onClickNewGame('white')\">White</button></p>\n      \t<p><button (click)=\"onClickNewGame('black')\">Black</button></p>\n      </div>\t\n\n      <button (click)=\"getGames()\">View available games</button>\n\n      <div *ngIf=\"gotAllGames==true\" id=\"allGames\">\n      \t<table>\n      \t\t<tr>\n\t      \t\t<th>Game ID</th>\n\t      \t\t<th>White</th>\n\t      \t\t<th>Black</th>\n\t      \t\t<th>Action</th>\n      \t\t</tr>\n      \t\n      \t\t<tr *ngFor=\"let game of allGames\">\n      \t\t\t<td>{{game._id}}</td>\n      \t\t\t<td>{{game.white}}</td>\n      \t\t\t<td>{{game.black}}</td>\n      \t\t\t<!-- <td><a href=\"/game/{{game._id}}\"><button>Play!</button></a></td> -->\n      \t\t\t<td *ngIf=\"!game.white\"><button (click)=\"joinGame('white', game._id)\">Play as white!</button></td>\n      \t\t\t<td *ngIf=\"!game.black\"><button (click)=\"joinGame('black', game._id)\">Play as black!</button></td>\n      \t\t\t<td *ngIf=\"game.black && game.white\"><button (click)=\"viewGame(game._id)\">View game!</button></td>\n      \t\t</tr>\n      \t</table>\n      </div>\n\n    </div>\n  </div>\n</div>\n"
+module.exports = "<div class=\"outer\">\n  <div class=\"middle\">\n    <div class=\"inner text-center\">\n\n      <h1>Stephen's Chess Server</h1>\n\n      <h1>Let's Play</h1>\n\n      <p><button *ngIf=\"color==false\" (click)=\"selectColor()\">New game</button></p>\n      <p><button *ngIf=\"gotAllGames==false\" (click)=\"getGames()\">View available games</button></p>\n\n      <div *ngIf=\"color==true\" id='select-color'>\n      \t<h3>Select color: </h3>\n      \t<p><button (click)=\"onClickNewGame('white')\">White</button></p>\n      \t<p><button (click)=\"onClickNewGame('black')\">Black</button></p>\n      </div>\t\n\n      <div *ngIf=\"gotAllGames==true\" id=\"allGames\">\n      \t<table>\n      \t\t<tr>\n\t      \t\t<th>Game ID</th>\n\t      \t\t<th>White</th>\n\t      \t\t<th>Black</th>\n\t      \t\t<th>Action</th>\n            <th>Delete</th>\n      \t\t</tr>\n      \t\n      \t\t<tr *ngFor=\"let game of allGames; let i = index;\">\n      \t\t\t<td>{{game._id}}</td>\n      \t\t\t<td>{{game.white}}</td>\n      \t\t\t<td>{{game.black}}</td>\n      \t\t\t<!-- <td><a href=\"/game/{{game._id}}\"><button>Play!</button></a></td> -->\n      \t\t\t<td *ngIf=\"!game.white\"><button (click)=\"joinGame('white', game._id)\">Play as white!</button></td>\n      \t\t\t<td *ngIf=\"!game.black\"><button (click)=\"joinGame('black', game._id)\">Play as black!</button></td>\n      \t\t\t<td *ngIf=\"game.black && game.white\"><button (click)=\"viewGame(game._id)\">View game!</button></td>\n            <td><button (click)=\"deleteOneGame(i)\">Delete Game</button></td>\n      \t\t</tr>\n      \t</table>\n      </div>\n\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -456,6 +467,15 @@ var MainComponent = /** @class */ (function () {
     };
     MainComponent.prototype.viewGame = function (id) {
         this._router.navigate(['/game/' + id]);
+    };
+    MainComponent.prototype.deleteOneGame = function (i) {
+        var _this = this;
+        if (confirm('Are you sure you want to delete this game?')) {
+            this._gameService.deleteGame(this.allGames[i]._id).subscribe(function (data) {
+                console.log(data.data);
+                _this.allGames.splice(i, 1);
+            });
+        }
     };
     MainComponent = __decorate([
         core_1.Component({

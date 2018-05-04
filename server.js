@@ -36,17 +36,16 @@ io.sockets.on('connection', function (socket) {
 	console.log("Client/socket is connected!");
 	console.log("Client/socket id is: ", socket.id);
 
-	socketIds.push(socket.id)
+	// socketIds.push(socket.id)
 	socket.emit("playerConnected", socket.id);
-	console.log(socketIds);
+	// console.log(socketIds);
 	
 	//SOCKET EMITS AND LISTENS
 
 	socket.on('disconnect', function(){
-		// console.log(socketIds.indexOf(socket.id))
-		socketIds.splice(socketIds.indexOf(socket.id)+1, 1);
+		// socketIds.splice(socketIds.indexOf(socket.id)+1, 1);
 		console.log("Client "+socket.id+" disconnected.")
-		console.log(socketIds);
+		// console.log(socketIds);
 	})
 
     socket.on('sendMove', function (data, cb) {

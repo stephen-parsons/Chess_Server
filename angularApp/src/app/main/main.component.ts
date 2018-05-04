@@ -17,7 +17,7 @@ export class MainComponent implements OnInit {
 
   private gotAllGames: any
 
-  private color: any;
+  private color: boolean;
 
   ngOnInit() {
   	this.game = {white: null, black: null};
@@ -93,6 +93,15 @@ export class MainComponent implements OnInit {
 
   viewGame(id){
     this._router.navigate(['/game/'+id]);
+  }
+
+  deleteOneGame(i){
+    if (confirm('Are you sure you want to delete this game?')) {
+      this._gameService.deleteGame(this.allGames[i]._id).subscribe(data=>{
+        console.log(data.data);
+        this.allGames.splice(i, 1);  
+      })
+    }
   }
 
 }

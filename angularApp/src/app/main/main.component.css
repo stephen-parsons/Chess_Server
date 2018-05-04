@@ -15,3 +15,11 @@
     margin-right: auto; 
     width: auto; /*whatever width you want*/
 }
+
+h1 {
+	margin-bottom: 5%;
+}
+
+button {
+	margin-bottom: 10px;
+}

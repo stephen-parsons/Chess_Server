@@ -76,6 +76,19 @@ module.exports = {
     })
   },
 
+  deleteGame: function(req, res, id){
+    Game.remove({_id: id}, function(err){
+      if(err){
+          console.log("Error!");
+          return res.json(err)
+        }
+        else{
+          console.log("Removed game!")
+          return res.json({data: "Game removed!"})
+        }
+    });
+  }
+
 //   createAnswer: function(req,res){
 //     console.log(req.body);
 //     var answer = new Answer(req.body.answer);
