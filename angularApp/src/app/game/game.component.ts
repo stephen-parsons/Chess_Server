@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as io from 'socket.io-client';
 
 declare function setListeners(): any;
+declare function updateGame(thismovelist): any;
+declare function postGameData(data, cb): any;
 
 @Component({
   selector: 'app-game',
@@ -16,6 +18,8 @@ export class GameComponent implements OnInit {
     this.socket = io.connect();
     window['angularComponentRef'] = {component: this, zone: _ngZone};
   }
+
+  CircularJSON: require('CircularJSON');
 
   socket: SocketIOClient.Socket;
 
@@ -43,15 +47,16 @@ export class GameComponent implements OnInit {
       this.socketId = data;
     });
     
-    //recieve move
+    //receive move
     this.socket.on('receiveMove', function(dataBack){   
       console.log("Move Data :", dataBack)
-      // updateGame(CircularJSON.parse(dataBack));
-      // console.log("Updated board game!");
-      // postGameData(dataBack, (game)=>{
-      //   // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+      updateGame(CircularJSON.parse(dataBack).moveList);
+      console.log("Updated board game!");
+      postGameData(dataBack, (game)=>{
+        // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+        console.log("Game data sent to server!")
         setListeners();
-      // });
+      });
     });
 		
     this.sub = this.route.params.subscribe(params => {

@@ -250,6 +250,7 @@ var GameComponent = /** @class */ (function () {
         this._gameService = _gameService;
         this._router = _router;
         this._ngZone = _ngZone;
+        this.CircularJSON = ('CircularJSON');
         this.socket = io.connect();
         window['angularComponentRef'] = { component: this, zone: _ngZone };
     }
@@ -262,15 +263,16 @@ var GameComponent = /** @class */ (function () {
             //assign player
             this.socketId = data;
         });
-        //recieve move
+        //receive move
         this.socket.on('receiveMove', function (dataBack) {
             console.log("Move Data :", dataBack);
-            // updateGame(CircularJSON.parse(dataBack));
-            // console.log("Updated board game!");
-            // postGameData(dataBack, (game)=>{
-            //   // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
-            setListeners();
-            // });
+            updateGame(CircularJSON.parse(dataBack).moveList);
+            console.log("Updated board game!");
+            postGameData(dataBack, function (game) {
+                // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+                console.log("Game data sent to server!");
+                setListeners();
+            });
         });
         this.sub = this.route.params.subscribe(function (params) {
             _this.id = params['id'];

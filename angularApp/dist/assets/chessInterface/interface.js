@@ -1640,7 +1640,7 @@ function getGameData(cb){
 	});
 }
 
-function postGameData(data, cb){
+var postGameData = function(data, cb){
 	// console.log("UNPARSED: ", data);
 	// console.log("PARSED: ", CircularJSON.parse(data))
 
@@ -1654,18 +1654,18 @@ function postGameData(data, cb){
 	});
 }
 
-function updateGame(movelist){
+var updateGame = function(thismovelist){
 	// game = CircularJSON.parse(game);
 
 	//SET LOCAL VARS TO GAME DATA FROM DB
 
-	moveList = movelist;
-	white = movelist.tail.white;
-	black = movelist.tail.black;
-	board = movelist.tail.board;
-	gameReady = movelist.tail.gameReady;
-	moveNumber = movelist.tail.moveNumber;
-	if (movelist.tail.turn == "white"){
+	moveList = thismovelist;
+	white = thismovelist.tail.white;
+	black = thismovelist.tail.black;
+	board = thismovelist.tail.board;
+	gameReady = thismovelist.tail.gameReady;
+	moveNumber = thismovelist.tail.moveNumber;
+	if (thismovelist.tail.turn == "white"){
 		turn = white;
 	}
 	else {

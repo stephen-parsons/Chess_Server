@@ -53,7 +53,7 @@ module.exports = {
         console.log(err);
         }
       else {
-        console.log("All games:", games); 
+        console.log("Got "+games.length+" games!"); 
         return res.json(games);
       }
     }) 
