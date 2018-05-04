@@ -52,6 +52,6 @@ io.sockets.on('connection', function (socket) {
     socket.on('sendMove', function (data, cb) {
     	// console.log("Data from socket on: ", data);
     	cb("Receieved data on server end!");
-    	io.sockets.emit('recieveMove', data);
+    	io.sockets.emit('receiveMove', data);
     });
 });

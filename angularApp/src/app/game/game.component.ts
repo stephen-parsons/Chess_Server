@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone, OnDestroy } from '@angular/core';
 import { GameService } from '../game.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as io from 'socket.io-client';
+
+declare function setListeners(): any;
 
 @Component({
   selector: 'app-game',
@@ -10,8 +12,9 @@ import * as io from 'socket.io-client';
 })
 export class GameComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute, private _gameService: GameService, private _router: Router) { 
+  constructor(private route: ActivatedRoute, private _gameService: GameService, private _router: Router, private _ngZone: NgZone) { 
     this.socket = io.connect();
+    window['angularComponentRef'] = {component: this, zone: _ngZone};
   }
 
   socket: SocketIOClient.Socket;
@@ -29,12 +32,29 @@ export class GameComponent implements OnInit {
   socketId: any;
 
   ngOnInit() {
+
+    //
+
+    //
+
     this.socket.on('playerConnected', function (data) {
       console.log("Player "+data+" connected!");
       //assign player
       this.socketId = data;
     });
-		this.sub = this.route.params.subscribe(params => {
+    
+    //recieve move
+    this.socket.on('receiveMove', function(dataBack){   
+      console.log("Move Data :", dataBack)
+      // updateGame(CircularJSON.parse(dataBack));
+      // console.log("Updated board game!");
+      // postGameData(dataBack, (game)=>{
+      //   // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+        setListeners();
+      // });
+    });
+		
+    this.sub = this.route.params.subscribe(params => {
     	this.id = params['id'];
     	//GET GAME FROM SERVICE BASED ON URL
       this._gameService.getGame(this.id).subscribe(data=>{
@@ -63,6 +83,16 @@ export class GameComponent implements OnInit {
     });
   }
 
+  //add socket functions here
+
+  //send move
+  sendMove(data) {
+    // console.log('sending move: ', data);
+    this.socket.emit('sendMove', data, function(cb){
+      console.log(cb);
+    });
+  };
+
   loadInterfaceScript() {
     // let body = <HTMLDivElement> document.body;
     let body = document.getElementById('main')
@@ -74,18 +104,5 @@ export class GameComponent implements OnInit {
     this.script.defer = true;
     body.appendChild(this.script);
   }
-
-  // loadConnectGameScript() {
-  //   let head = <HTMLDivElement> document.head;
-  //   this.script = document.createElement('script');
-  //   this.script.innerHTML = '';
-  //   this.script.id = this.id
-  //   this.script.src = '/assets/angular-socket-script.js';
-  //   this.script.async = true;
-  //   this.script.defer = true;
-  //   head.appendChild(this.script);
-  // }
-
-  //
 
 }

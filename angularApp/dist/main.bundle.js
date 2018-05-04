@@ -221,7 +221,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/game/game.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <script type=\"application/javascript\">\n\n\tvar CircularJSON = window.CircularJSON;\n\n\tvar ipaddress = 'localhost:8000'\n\n\tvar playerColor;\n\n\tvar socketId;\n\n\tvar app = angular.module('socketApp', [ 'socket.io' ]);\n    \n    app.config(function ($socketProvider) {\n    \tconsole.log('http://'+ipaddress+'/'+{{id}});\n        $socketProvider.setConnectionUrl('http://'+ipaddress+'/'+{{id}});\n    });\n    \n    app.controller('Ctrl', function Ctrl($scope, $socket) {\n    \tconsole.log(window.location.href)\n\n        $socket.on('playerConnected', function (data) {\n        \tconsole.log(\"Player \"+data+\" connected!\");\n        \t//assign player\n        \tsocketId = data;\n        });\n\n        $socket.on('recieveMove', function(dataBack){\t\n        \t// console.log(\"Move Data :\", dataBack)\n        \tupdateGame(CircularJSON.parse(dataBack));\n        \tconsole.log(\"Updated board game!\");\n        \tpostGameData(dataBack, (game)=>{\n\t\t\t\t// console.log(\"POST GAME DATA :\", CircularJSON.parse(game.moveList));\n\t\t\t\tsetListeners();\n\t\t\t});\n        });\t\n\n        $scope.sendMove = function sendMove(data) {\n            // console.log('sending move: ', data);\n            $socket.emit('sendMove', data, function(cb){\n            \tconsole.log(cb);\n            });\n        };\n    });\n\t\n</script> -->\n\n<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
+module.exports = "<!-- <script type=\"application/javascript\">\n\n</script> -->\n<!-- <script type=\"application/javascript\">\n\n\tvar CircularJSON = window.CircularJSON;\n\n\tvar ipaddress = 'localhost:8000'\n\n\tvar playerColor;\n\n\tvar socketId;\n\n\tvar app = angular.module('socketApp', [ 'socket.io' ]);\n    \n    app.config(function ($socketProvider) {\n    \tconsole.log('http://'+ipaddress+'/'+{{id}});\n        $socketProvider.setConnectionUrl('http://'+ipaddress+'/'+{{id}});\n    });\n    \n    app.controller('Ctrl', function Ctrl($scope, $socket) {\n    \tconsole.log(window.location.href)\n\n        $socket.on('playerConnected', function (data) {\n        \tconsole.log(\"Player \"+data+\" connected!\");\n        \t//assign player\n        \tsocketId = data;\n        });\n\n        $socket.on('recieveMove', function(dataBack){\t\n        \t// console.log(\"Move Data :\", dataBack)\n        \tupdateGame(CircularJSON.parse(dataBack));\n        \tconsole.log(\"Updated board game!\");\n        \tpostGameData(dataBack, (game)=>{\n\t\t\t\t// console.log(\"POST GAME DATA :\", CircularJSON.parse(game.moveList));\n\t\t\t\tsetListeners();\n\t\t\t});\n        });\t\n\n        $scope.sendMove = function sendMove(data) {\n            // console.log('sending move: ', data);\n            $socket.emit('sendMove', data, function(cb){\n            \tconsole.log(cb);\n            });\n        };\n    });\n\t\n</script> -->\n\n<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
 
 /***/ }),
 
@@ -245,18 +245,32 @@ var game_service_1 = __webpack_require__("../../../../../src/app/game.service.ts
 var router_1 = __webpack_require__("../../../router/esm5/router.js");
 var io = __webpack_require__("../../../../socket.io-client/lib/index.js");
 var GameComponent = /** @class */ (function () {
-    function GameComponent(route, _gameService, _router) {
+    function GameComponent(route, _gameService, _router, _ngZone) {
         this.route = route;
         this._gameService = _gameService;
         this._router = _router;
+        this._ngZone = _ngZone;
         this.socket = io.connect();
+        window['angularComponentRef'] = { component: this, zone: _ngZone };
     }
     GameComponent.prototype.ngOnInit = function () {
+        //
         var _this = this;
+        //
         this.socket.on('playerConnected', function (data) {
             console.log("Player " + data + " connected!");
             //assign player
             this.socketId = data;
+        });
+        //recieve move
+        this.socket.on('receiveMove', function (dataBack) {
+            console.log("Move Data :", dataBack);
+            // updateGame(CircularJSON.parse(dataBack));
+            // console.log("Updated board game!");
+            // postGameData(dataBack, (game)=>{
+            //   // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
+            setListeners();
+            // });
         });
         this.sub = this.route.params.subscribe(function (params) {
             _this.id = params['id'];
@@ -286,6 +300,15 @@ var GameComponent = /** @class */ (function () {
             });
         });
     };
+    //add socket functions here
+    //send move
+    GameComponent.prototype.sendMove = function (data) {
+        // console.log('sending move: ', data);
+        this.socket.emit('sendMove', data, function (cb) {
+            console.log(cb);
+        });
+    };
+    ;
     GameComponent.prototype.loadInterfaceScript = function () {
         // let body = <HTMLDivElement> document.body;
         var body = document.getElementById('main');
@@ -303,7 +326,7 @@ var GameComponent = /** @class */ (function () {
             template: __webpack_require__("../../../../../src/app/game/game.component.html"),
             styles: [__webpack_require__("../../../../../src/app/game/game.component.css")]
         }),
-        __metadata("design:paramtypes", [router_1.ActivatedRoute, game_service_1.GameService, router_1.Router])
+        __metadata("design:paramtypes", [router_1.ActivatedRoute, game_service_1.GameService, router_1.Router, core_1.NgZone])
     ], GameComponent);
     return GameComponent;
 }());

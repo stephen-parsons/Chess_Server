@@ -1591,7 +1591,7 @@ function readyMove(){
 	});
 }
 
-function setListeners(){
+var setListeners = function(){
 	if (gameReady == true){
 		console.log("Enable drag");
 		enableDrag();
@@ -1891,8 +1891,9 @@ function upListener (e){
 
 		//SEND GAME DATA
 		data = {"_id": gameId, "moveList": moveList}
-		// console.log("INTERFACE :", moveList);
-		$('[ng-controller="Ctrl"]').scope().sendMove(CircularJSON.stringify(data));
+		window['angularComponentRef'].zone.run(() => {
+        	window['angularComponentRef'].component.sendMove(CircularJSON.stringify(data)); 
+      	});
 		return;
 	}
 	
