@@ -4,9 +4,10 @@ var sharedsession = require("express-socket.io-session");
 var bodyParser = require('body-parser');
 var path = require('path');
 var mongoose = require('mongoose');
-var JSON = require('circular-json')
+var JSON = require('circular-json');
 var app = express();
-var cors = require('cors')
+var cors = require('cors');
+var clone = require('clone');
 
 var request = require('request');
 

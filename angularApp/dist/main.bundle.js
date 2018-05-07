@@ -224,7 +224,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/game/game.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <script type=\"application/javascript\">\n\n</script> -->\n<!-- <script type=\"application/javascript\">\n\n\tvar CircularJSON = window.CircularJSON;\n\n\tvar ipaddress = 'localhost:8000'\n\n\tvar playerColor;\n\n\tvar socketId;\n\n\tvar app = angular.module('socketApp', [ 'socket.io' ]);\n    \n    app.config(function ($socketProvider) {\n    \tconsole.log('http://'+ipaddress+'/'+{{id}});\n        $socketProvider.setConnectionUrl('http://'+ipaddress+'/'+{{id}});\n    });\n    \n    app.controller('Ctrl', function Ctrl($scope, $socket) {\n    \tconsole.log(window.location.href)\n\n        $socket.on('playerConnected', function (data) {\n        \tconsole.log(\"Player \"+data+\" connected!\");\n        \t//assign player\n        \tsocketId = data;\n        });\n\n        $socket.on('recieveMove', function(dataBack){\t\n        \t// console.log(\"Move Data :\", dataBack)\n        \tupdateGame(CircularJSON.parse(dataBack));\n        \tconsole.log(\"Updated board game!\");\n        \tpostGameData(dataBack, (game)=>{\n\t\t\t\t// console.log(\"POST GAME DATA :\", CircularJSON.parse(game.moveList));\n\t\t\t\tsetListeners();\n\t\t\t});\n        });\t\n\n        $scope.sendMove = function sendMove(data) {\n            // console.log('sending move: ', data);\n            $socket.emit('sendMove', data, function(cb){\n            \tconsole.log(cb);\n            });\n        };\n    });\n\t\n</script> -->\n\n<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
+module.exports = "<div id=\"main\">\n\t<div id=\"player\"></div>\n\t<div id=\"board\"></div>\n\t<div id=\"pieces\"></div>\n\t<div id=\"messages\"></div>\n</div>\n\n"
 
 /***/ }),
 
@@ -269,7 +269,8 @@ var GameComponent = /** @class */ (function () {
         //receive move
         this.socket.on('receiveMove', function (dataBack) {
             console.log("Move Data :", dataBack);
-            updateGame(CircularJSON.parse(dataBack).moveList);
+            // updateGame(CircularJSON.parse(dataBack).moveList);
+            updateGame(dataBack.moveList);
             console.log("Updated board game!");
             postGameData(dataBack, function (game) {
                 // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));

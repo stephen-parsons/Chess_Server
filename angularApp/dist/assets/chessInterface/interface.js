@@ -50,13 +50,13 @@ function saveMove(list, piece, newSquare, move){
 		list.tail = list.head;
 	}
 	else {
-		let prev = runner;
+		// let prev = runner;
 		while (runner.next != null && runner.next != ""){
-			prev = runner.next;
+			// prev = runner.next;
 			runner = runner.next;
 		}
 		runner.next = new Move(piece, newSquare, move)
-		runner.next.previous = prev;
+		// runner.next.previous = prev;
 		list.tail = runner.next;
 	}
 }
@@ -74,7 +74,7 @@ function refactorBoardNull(){
 //Create movelist object
 var moveList = new MoveList();
 
-//Move object
+// Move object
 class Move {
 	constructor(piece, newSquare, move){
 		this.moveNumber = moveNumber
@@ -83,7 +83,7 @@ class Move {
 		this.white = white
 		this.black = black
 		this.next = null
-		this.previous = null
+		// this.previous = null
 		this.name = null;
 		this.gameReady = gameReady;
 		this.generateMoveName(piece, newSquare, move);
@@ -115,6 +115,51 @@ class Move {
 		this.name = moveName
 	}	
 }
+
+// Move object
+// class Move {
+// 	constructor(piece, newSquare, move){
+// 		this.moveNumber = moveNumber
+// 		this.turn = turn.color
+// 		// this.board = board
+// 		// this.white = white
+// 		// this.black = black
+// 		this.piece = piece
+// 		this.newSquare = newSquare
+// 		this.move = move
+// 		this.next = null
+// 		this.previous = null
+// 		this.name = null;
+// 		this.gameReady = gameReady;
+// 		this.generateMoveName(piece, newSquare, move);
+// 	}	
+
+// 	generateMoveName(piece, newSquare, move){
+// 		let moveName = piece.shorthand+newSquare.file+newSquare.rank;
+// 		if (move == "Capture"){
+// 			if (piece.name.includes("Pawn")){
+// 				moveName = piece.square[0]+"x"+newSquare.file+newSquare.rank;
+// 			}
+// 			else {
+// 				moveName = piece.shorthand+"x"+newSquare.file+newSquare.rank;
+// 			}
+// 		}
+// 		else if (move == "CastleShort"){
+// 			moveName = "O-O"
+// 		}
+// 		else if (move == "CastleLong"){
+// 			moveName = "O-O-O"
+// 		}
+// 		if (mate == true){
+// 			moveName+="#"
+// 		}
+// 		else if (turn.inCheck == true){
+// 			moveName+="+"
+// 		}
+
+// 		this.name = moveName
+// 	}	
+// }
 
 //Array of piece names
 var pieceNames = ["Rook", "Knight", "Bishop", "Queen", "King", "Bishop", "Knight", "Rook"];
@@ -1601,18 +1646,57 @@ var setListeners = function(){
 
 function setViewListeners(){
 	console.log(moveList);
+	console.log("View listeners set");
 	if (gameReady == false){
 		document.addEventListener('keyup', function(e){
+			//37 left, 39 right
 			if (e.keyCode == 37){
-				//
+				//left arrow
+				console.log("Left")
+				if (parseInt(moveList.tail.moveNumber) == 1){
+					if (moveList.tail.turn == "white"){
+						moveList.tail = moveList.head
+						viewGameUpdate(moveList.tail);
+					}
+				}
+				if (parseInt(moveList.tail.moveNumber) != 1){
+					//TRAVERSE LIST
+					let runner = moveList.head
+					let prev = runner;
+					while (runner.next != null && runner.next != "" && runner != moveList.tail){
+						prev = runner;
+						runner = runner.next;
+						console.log(prev);
+					}
+					moveList.tail = prev;
+					console.log(moveList.tail);
+					viewGameUpdate(moveList.tail);
+				}
 			}
 			else if (e.keyCode == 39){
-				//
+				//right arrow
+				console.log("Right")
+				if (moveList.tail.next){
+					moveList.tail = moveList.tail.next
+					viewGameUpdate(moveList.tail);
+				}
 			}
-	    	//37 left, 39 right
-			console.log("View listeners set");
 		})
 	}
+}
+
+function viewGameUpdate(){
+	console.log(moveList);
+	white = moveList.tail.white;
+	black = moveList.tail.black;
+	board = moveList.tail.board;
+
+	//UPDATE EVERYTHING WITH NEW LOCAL VARS
+
+	clearBoard();
+	populateBoard(white);
+	populateBoard(black);
+	console.log("GET GAME DATA BOARD: ", board);
 }
 
 function getGameData(cb){
@@ -1633,7 +1717,8 @@ function getGameData(cb){
 		}
 		else {
 			//UNPARSE DATA FROM DB
-			game = CircularJSON.parse(data[0].moveList);
+			// game = CircularJSON.parse(data[0].moveList);
+			game = data[0].moveList;
 			updateGame(game.moveList);
 		}
 		cb(game);
@@ -1646,7 +1731,8 @@ var postGameData = function(data, cb){
 
 	//PARSE GAME DATA TO SEND MONGODB ALONG WITH UNPARSED KEY
 
-	parsedData = CircularJSON.parse(data);
+	// parsedData = CircularJSON.parse(data);
+	parsedData = data;
 	gameDataToSendToMongoDB = {"_id": parsedData._id, "unparsedData": data}
 	$.post('http://'+ipaddress+'/game/update/', gameDataToSendToMongoDB, function(data){
 		// console.log("POST GAME DATA :", data);
@@ -1654,18 +1740,19 @@ var postGameData = function(data, cb){
 	});
 }
 
-var updateGame = function(thismovelist){
+var updateGame = function(movelist){
 	// game = CircularJSON.parse(game);
+	console.log(moveList);
 
 	//SET LOCAL VARS TO GAME DATA FROM DB
 
-	moveList = thismovelist;
-	white = thismovelist.tail.white;
-	black = thismovelist.tail.black;
-	board = thismovelist.tail.board;
-	gameReady = thismovelist.tail.gameReady;
-	moveNumber = thismovelist.tail.moveNumber;
-	if (thismovelist.tail.turn == "white"){
+	moveList = movelist;
+	white = movelist.tail.white;
+	black = movelist.tail.black;
+	board = movelist.tail.board;
+	gameReady = movelist.tail.gameReady;
+	moveNumber = movelist.tail.moveNumber;
+	if (movelist.tail.turn == "white"){
 		turn = white;
 	}
 	else {
@@ -1890,9 +1977,14 @@ function upListener (e){
 		saveMove(moveList, piece, newSquare, move, mate);
 
 		//SEND GAME DATA
-		data = {"_id": gameId, "moveList": moveList}
-		window['angularComponentRef'].zone.run(() => {
-        	window['angularComponentRef'].component.sendMove(CircularJSON.stringify(data)); 
+		let newMoveList = clone(moveList, true);
+		console.log(newMoveList);
+		data = {"_id": gameId, "moveList": newMoveList}
+		// window['angularComponentRef'].zone.run(() => {
+  //       	window['angularComponentRef'].component.sendMove(CircularJSON.stringify(data)); 
+  //     	});
+  		window['angularComponentRef'].zone.run(() => {
+        	window['angularComponentRef'].component.sendMove(data); 
       	});
 		return;
 	}
