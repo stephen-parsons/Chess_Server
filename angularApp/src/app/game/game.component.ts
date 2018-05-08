@@ -50,14 +50,9 @@ export class GameComponent implements OnInit {
     //receive move
     this.socket.on('receiveMove', function(dataBack){   
       console.log("Move Data :", dataBack)
-      // updateGame(CircularJSON.parse(dataBack).moveList);
-      updateGame(dataBack.moveList);
+      updateGame(dataBack.moveList, true);
       console.log("Updated board game!");
-      postGameData(dataBack, (game)=>{
-        // console.log("POST GAME DATA :", CircularJSON.parse(game.moveList));
-        console.log("Game data sent to server!")
-        setListeners();
-      });
+      setListeners();
     });
 		
     this.sub = this.route.params.subscribe(params => {

@@ -1639,7 +1639,7 @@ var setListeners = function(){
 function setViewListeners(){
 	console.log(moveList);
 	console.log("View listeners set");
-	if (gameReady == false){
+	if (gameReady == false && moveList.head != null && moveList.head != ""){
 		document.addEventListener('keyup', function(e){
 			//37 left, 39 right
 			if (e.keyCode == 37){
@@ -1653,7 +1653,7 @@ function setViewListeners(){
 					runner = runner.next;
 				}
 				console.log(prev);
-				viewGameUpdate(moveList.tail.piece, moveList.tail.oldSquare, prev);
+				viewGameUpdate(moveList.tail.piece, moveList.tail.oldSquare);
 				moveList.tail = prev;
 			}
 			else if (e.keyCode == 39){
@@ -1736,7 +1736,7 @@ var postGameData = function(data, cb){
 	});
 }
 
-var updateGame = function(movelist){
+var updateGame = function(movelist, updateMove){
 	// game = CircularJSON.parse(game);
 	console.log(moveList);
 
@@ -1755,11 +1755,15 @@ var updateGame = function(movelist){
 		turn = black;
 	}
 
+	if (updateMove == true){
+		viewGameUpdate(moveList.tail.piece, moveList.tail.newSquare);
+	}
+	else {
 	//UPDATE EVERYTHING WITH NEW LOCAL VARS
-
-	clearBoard();
-	populateBoard(white);
-	populateBoard(black);
+		clearBoard();
+		populateBoard(white);
+		populateBoard(black);
+	}
 	console.log("GET GAME DATA BOARD: ", board);
 	targetSquares(white);
 	targetSquares(black);
@@ -1847,7 +1851,7 @@ function upListener (e){
 		console.log(playerColor, checkTurn)
 		if (playerColor != checkTurn){
 			console.log("NOT YOUR TURN!");
-			readyMove();
+			// readyMove();
 			return;
 		}
 
@@ -1968,6 +1972,7 @@ function upListener (e){
 		if (mate == true || mate === "Stalemate"){
 			gameReady = false;
 			disableDrag();
+			setViewListeners();
 		}
 		if (turn == black){
 			moveNumber+=1;	
@@ -1977,16 +1982,25 @@ function upListener (e){
 		console.log(piece, newSquare, move, mate, oldSquare, capturedPiece)
 		saveMove(moveList, piece, newSquare, move, mate, oldSquare, capturedPiece);
 
-		//SEND GAME DATA
-		// let newMoveList = clone(moveList, true);
-		// console.log(newMoveList);
 		data = {"_id": gameId, "moveList": moveList}
-		// window['angularComponentRef'].zone.run(() => {
-  //       	window['angularComponentRef'].component.sendMove(CircularJSON.stringify(data)); 
-  //     	});
+
+		//POST GAME DATA
+		postGameData(data, (game)=>{
+        	console.log("Game data sent to server!", game)
+      	});
+
+		//SEND GAME DATA
   		window['angularComponentRef'].zone.run(() => {
         	window['angularComponentRef'].component.sendMove(data); 
       	});
+
+      	//GET READY FOR NEXT MOVE
+      	targetSquares(white);
+		targetSquares(black);
+		//CHANGE "" BACK TO NULL FOR PIECES
+		refactorBoardNull();
+		setMessages();
+
 		return;
 	}
 	
