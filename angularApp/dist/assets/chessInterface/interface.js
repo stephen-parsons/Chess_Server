@@ -38,7 +38,7 @@ class MoveList {
 }
 
 //SAVE MOVE METHOD
-function saveMove(list, piece, newSquare, move){
+function saveMove(list, piece, newSquare, move, mate, oldSquare, capturedPiece){
 	
 	// CIRCULAR JSON DOES NOT WORK!!!
 
@@ -46,7 +46,7 @@ function saveMove(list, piece, newSquare, move){
 	// console.log(runner);
 
 	if (list.head == null || list.head == ""){
-		list.head = new Move(piece, newSquare, move);
+		list.head = new Move(piece, newSquare, move, mate, oldSquare, capturedPiece);
 		list.tail = list.head;
 	}
 	else {
@@ -55,7 +55,7 @@ function saveMove(list, piece, newSquare, move){
 			// prev = runner.next;
 			runner = runner.next;
 		}
-		runner.next = new Move(piece, newSquare, move)
+		runner.next = new Move(piece, newSquare, move, mate, oldSquare, capturedPiece)
 		// runner.next.previous = prev;
 		list.tail = runner.next;
 	}
@@ -76,14 +76,21 @@ var moveList = new MoveList();
 
 // Move object
 class Move {
-	constructor(piece, newSquare, move){
+	constructor(piece, newSquare, move, mate, oldSquare, capturedPiece){
+		// capturedPiece = capturedPiece || null
+
 		this.moveNumber = moveNumber
 		this.turn = turn.color
 		this.board = board
 		this.white = white
 		this.black = black
+		this.piece = piece
+		this.newSquare = newSquare
+		this.mate = mate
+		this.oldSquare = oldSquare
+		this.capturedPiece = capturedPiece
+		this.move = move
 		this.next = null
-		// this.previous = null
 		this.name = null;
 		this.gameReady = gameReady;
 		this.generateMoveName(piece, newSquare, move);
@@ -115,51 +122,6 @@ class Move {
 		this.name = moveName
 	}	
 }
-
-// Move object
-// class Move {
-// 	constructor(piece, newSquare, move){
-// 		this.moveNumber = moveNumber
-// 		this.turn = turn.color
-// 		// this.board = board
-// 		// this.white = white
-// 		// this.black = black
-// 		this.piece = piece
-// 		this.newSquare = newSquare
-// 		this.move = move
-// 		this.next = null
-// 		this.previous = null
-// 		this.name = null;
-// 		this.gameReady = gameReady;
-// 		this.generateMoveName(piece, newSquare, move);
-// 	}	
-
-// 	generateMoveName(piece, newSquare, move){
-// 		let moveName = piece.shorthand+newSquare.file+newSquare.rank;
-// 		if (move == "Capture"){
-// 			if (piece.name.includes("Pawn")){
-// 				moveName = piece.square[0]+"x"+newSquare.file+newSquare.rank;
-// 			}
-// 			else {
-// 				moveName = piece.shorthand+"x"+newSquare.file+newSquare.rank;
-// 			}
-// 		}
-// 		else if (move == "CastleShort"){
-// 			moveName = "O-O"
-// 		}
-// 		else if (move == "CastleLong"){
-// 			moveName = "O-O-O"
-// 		}
-// 		if (mate == true){
-// 			moveName+="#"
-// 		}
-// 		else if (turn.inCheck == true){
-// 			moveName+="+"
-// 		}
-
-// 		this.name = moveName
-// 	}	
-// }
 
 //Array of piece names
 var pieceNames = ["Rook", "Knight", "Bishop", "Queen", "King", "Bishop", "Knight", "Rook"];
@@ -359,6 +321,31 @@ function populateBoard(color){
 			document.getElementById("Black"+color.pieces[piece].name).style.webkitAnimationName = "fade-in";
 		}	
 	}
+	for (let piece in color.capturedPieces) {
+		board[color.capturedPieces[piece].square].piece = color.capturedPieces[piece];
+		if (color == white){
+			document.getElementById("board").innerHTML += "<div id=White"+color.capturedPieces[piece].name+"><img src="+color.capturedPieces[piece].img+" alt="+color.capturedPieces[piece].name+"></div>";
+		}
+		else if (color == black){
+			document.getElementById("board").innerHTML += "<div id=Black"+color.capturedPieces[piece].name+"><img src="+color.capturedPieces[piece].img+" alt="+color.capturedPieces[piece].name+"></div>";	
+		}
+		board[color.capturedPieces[piece].square].piece.x = board[color.capturedPieces[piece].square].x;
+		board[color.capturedPieces[piece].square].piece.y = board[color.capturedPieces[piece].square].y;
+		if (color == white){
+			document.getElementById("White"+color.capturedPieces[piece].name).style.opacity = 0;
+			document.getElementById("White"+color.capturedPieces[piece].name).style.display = "none";
+			document.getElementById("White"+color.capturedPieces[piece].name).style.left = parseInt(color.capturedPieces[piece].x)+"px";
+			document.getElementById("White"+color.capturedPieces[piece].name).style.top = parseInt(color.capturedPieces[piece].y)+"px";
+			document.getElementById("White"+color.capturedPieces[piece].name).style.webkitAnimationName = "fade-in";
+		}
+		else if (color == black){
+			document.getElementById("Black"+color.capturedPieces[piece].name).style.opacity = 0;
+			document.getElementById("Black"+color.capturedPieces[piece].name).style.display = "none";
+			document.getElementById("Black"+color.capturedPieces[piece].name).style.left = parseInt(color.capturedPieces[piece].x)+"px";
+			document.getElementById("Black"+color.capturedPieces[piece].name).style.top = parseInt(color.capturedPieces[piece].y)+"px";
+			document.getElementById("Black"+color.capturedPieces[piece].name).style.webkitAnimationName = "fade-in";
+		}	
+	}
 }
 
 //
@@ -374,6 +361,9 @@ function updateBoard(piece, newSquare){
 		document.getElementById("Black"+piece.name).style.left = newSquare.x+"px";
 		document.getElementById("Black"+piece.name).style.top = newSquare.y+"px";
 	}
+	piece.x = newSquare.x;
+	piece.y = newSquare.y;
+
 	// console.log("AFTER", board);
 }
 
@@ -383,28 +373,30 @@ function capturePiece(newSquare, player){
 	if (newSquare.piece.color == "white"){
 		console.log("CAPTURE WHITE")
 		white.pieces[newSquare.piece.name].captured = true;
-		white.pieces[newSquare.piece.name].square = null;
+		// white.pieces[newSquare.piece.name].square = null;
 		if (white.capturedPieces == null){
 			white.capturedPieces = {};
 		}
 		white.capturedPieces[newSquare.piece.name] = white.pieces[newSquare.piece.name];
 		delete white.pieces[newSquare.piece.name];
 		var element = document.getElementById('White'+newSquare.piece.name);
-		element.outerHTML = "";
-		delete element;
+		// element.outerHTML = "";
+		// delete element;
+		element.style.display = "none"
 	}
 	else if (newSquare.piece.color == "black"){
 		console.log("CAPTURE BLACK")
 		black.pieces[newSquare.piece.name].captured = true;
-		black.pieces[newSquare.piece.name].square = null;
+		// black.pieces[newSquare.piece.name].square = null;
 		if (black.capturedPieces == null){
 			black.capturedPieces = {};
 		}
 		black.capturedPieces[newSquare.piece.name] = black.pieces[newSquare.piece.name];
 		delete black.pieces[newSquare.piece.name];
 		var element = document.getElementById('Black'+newSquare.piece.name);
-		element.outerHTML = "";
-		delete element;
+		// element.outerHTML = "";
+		// delete element;
+		element.style.display = "none"
 	}
 
 }
@@ -1605,7 +1597,7 @@ function setMessages(){
 			$("#messages").html("<h1>Opponent's move!</h1>")
 		}
 	}
-	if (gameReady == false && !playerColor == "Viewing"){
+	if (gameReady == false && playerColor != "Viewing"){
 		$("#messages").html("<h1>CHECKMATE!</h1>")	
 	}
 }
@@ -1653,50 +1645,54 @@ function setViewListeners(){
 			if (e.keyCode == 37){
 				//left arrow
 				console.log("Left")
-				if (parseInt(moveList.tail.moveNumber) == 1){
-					if (moveList.tail.turn == "white"){
-						moveList.tail = moveList.head
-						viewGameUpdate(moveList.tail);
-					}
+				//TRAVERSE LIST
+				let runner = moveList.head
+				let prev = runner;
+				while (runner.next != null && runner.next != "" && runner != moveList.tail){
+					prev = runner;
+					runner = runner.next;
 				}
-				if (parseInt(moveList.tail.moveNumber) != 1){
-					//TRAVERSE LIST
-					let runner = moveList.head
-					let prev = runner;
-					while (runner.next != null && runner.next != "" && runner != moveList.tail){
-						prev = runner;
-						runner = runner.next;
-						console.log(prev);
-					}
-					moveList.tail = prev;
-					console.log(moveList.tail);
-					viewGameUpdate(moveList.tail);
-				}
+				console.log(prev);
+				viewGameUpdate(moveList.tail.piece, moveList.tail.oldSquare, prev);
+				moveList.tail = prev;
 			}
 			else if (e.keyCode == 39){
 				//right arrow
 				console.log("Right")
-				if (moveList.tail.next){
+				if (moveList.tail.next != null && moveList.tail.next != ""){
+					viewGameUpdate(moveList.tail.piece, moveList.tail.newSquare);
 					moveList.tail = moveList.tail.next
-					viewGameUpdate(moveList.tail);
+				}
+				else {
+					viewGameUpdate(moveList.tail.piece, moveList.tail.newSquare);
 				}
 			}
 		})
 	}
 }
 
-function viewGameUpdate(){
+function viewGameUpdate(piece, newSquare){
 	console.log(moveList);
+	// console.log(newSquare);
 	white = moveList.tail.white;
 	black = moveList.tail.black;
 	board = moveList.tail.board;
 
-	//UPDATE EVERYTHING WITH NEW LOCAL VARS
+	//UPDATE EVERYTHING WITH NEW LOCAL VARS 
 
-	clearBoard();
-	populateBoard(white);
-	populateBoard(black);
-	console.log("GET GAME DATA BOARD: ", board);
+	updateBoard(piece, newSquare)
+	if (moveList.tail.move == "Capture"){
+		let oldPiece = moveList.tail.capturedPiece;
+		console.log(oldPiece);
+		if (oldPiece.color == "white"){
+			let name = 
+			$("#White"+oldPiece.name).toggle();
+		}
+		else if (oldPiece.color == "black"){
+			$("#Black"+oldPiece.name).toggle();
+		}
+		// updateBoard(oldPiece, board[oldPiece.square])
+	}
 }
 
 function getGameData(cb){
@@ -1889,6 +1885,10 @@ function upListener (e){
 
 		let move = checkMove(piece, newSquare, player, true, "null");
 
+		let oldSquare = $.extend({}, board[piece.square]);
+
+		let capturedPiece = null;
+
 		if (move == true){
 			console.log("GOOD MOVE");
 			let moveThisPiece = movePiece(piece, newSquare, player, true, "null");
@@ -1920,6 +1920,7 @@ function upListener (e){
 		else if (move == "Capture"){
 			console.log("CAPTURE!!!");
 			let ogNewSquare = $.extend({}, newSquare);
+			capturedPiece = newSquare.piece;
 			let moveThisPiece = movePiece(piece, newSquare, player, true, newSquare.piece);
 			if (moveThisPiece == true){
 				capturePiece(ogNewSquare, player);
@@ -1973,13 +1974,13 @@ function upListener (e){
 		}
 
 		//SAVE MOVE
-		console.log(piece, newSquare, move, mate)
-		saveMove(moveList, piece, newSquare, move, mate);
+		console.log(piece, newSquare, move, mate, oldSquare, capturedPiece)
+		saveMove(moveList, piece, newSquare, move, mate, oldSquare, capturedPiece);
 
 		//SEND GAME DATA
-		let newMoveList = clone(moveList, true);
-		console.log(newMoveList);
-		data = {"_id": gameId, "moveList": newMoveList}
+		// let newMoveList = clone(moveList, true);
+		// console.log(newMoveList);
+		data = {"_id": gameId, "moveList": moveList}
 		// window['angularComponentRef'].zone.run(() => {
   //       	window['angularComponentRef'].component.sendMove(CircularJSON.stringify(data)); 
   //     	});
