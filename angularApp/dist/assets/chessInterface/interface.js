@@ -7,9 +7,7 @@ var ipaddress = 'localhost:8000'
 
 //!! TO DO 
 
-// - SET RULES FOR STALEMATE, 50 MOVE RULE, 3 FOLD REPETITION
-
-// - EN PASSANT PAWN MOVES
+// - SET RULES FOR 50 MOVE RULE, 3 FOLD REPETITION
 
 // - PUT CAPTURED PIECES IN PIECES DIV
 
@@ -18,9 +16,6 @@ var ipaddress = 'localhost:8000'
 // !!
 
 //!!
-
-//FOR MOVELIST PARSING
-// var CircularJSON = window.CircularJSON;
 
 // VARIABLES
 var gameId = document.currentScript.getAttribute("id").split('/')[0];
@@ -184,6 +179,9 @@ var moveNumber = 0;
 //Game is reay to go
 var gameReady = true;
 
+//Boolean for en passant capture
+var enPassant = false;
+
 // FUNCTIONS
 
 //
@@ -297,6 +295,7 @@ function clearBoard(){
 	document.getElementById("board").innerHTML = "";
 }
 
+//CONSOLIDATE THIS FUNCTION
 function populateBoard(color){
 	for (let piece in color.pieces) {
 		board[color.pieces[piece].square].piece = color.pieces[piece];
@@ -363,13 +362,11 @@ function updateBoard(piece, newSquare){
 	}
 	piece.x = newSquare.x;
 	piece.y = newSquare.y;
-
-	// console.log("AFTER", board);
 }
 
 function capturePiece(newSquare, player){
-	//DELETE CAPTURED PIECE
-
+	
+	//MOVE CAPTURED PIECE TO 'capturedPieces' AND SET DISPLAY TO "none"
 	if (newSquare.piece.color == "white"){
 		console.log("CAPTURE WHITE")
 		white.pieces[newSquare.piece.name].captured = true;
@@ -380,8 +377,6 @@ function capturePiece(newSquare, player){
 		white.capturedPieces[newSquare.piece.name] = white.pieces[newSquare.piece.name];
 		delete white.pieces[newSquare.piece.name];
 		var element = document.getElementById('White'+newSquare.piece.name);
-		// element.outerHTML = "";
-		// delete element;
 		element.style.display = "none"
 	}
 	else if (newSquare.piece.color == "black"){
@@ -394,8 +389,6 @@ function capturePiece(newSquare, player){
 		black.capturedPieces[newSquare.piece.name] = black.pieces[newSquare.piece.name];
 		delete black.pieces[newSquare.piece.name];
 		var element = document.getElementById('Black'+newSquare.piece.name);
-		// element.outerHTML = "";
-		// delete element;
 		element.style.display = "none"
 	}
 
@@ -551,7 +544,7 @@ function checkMove(piece, newSquare, player, boolean, exclude){
 	}
 
 	//DEFINE RULES
-	// console.log(exclude)
+	console.log(exclude)
 	// console.log("BEFORE:", board);
 	// console.log("PIECE:", piece);
 	// console.log("NEWSQUARE:", newSquare);
@@ -559,6 +552,8 @@ function checkMove(piece, newSquare, player, boolean, exclude){
 	let pieceRank = parseInt(piece.square[1])
 
 	//PAWN
+
+	//BUILD EN PASSANT - check movelist.tail for pawn move two squares - then check if target square of piece is one less of that pawns square
 
 	if (!exclude.includes("Pawn")){
 
@@ -591,6 +586,16 @@ function checkMove(piece, newSquare, player, boolean, exclude){
 				else {
 					if (newSquare.rank > pieceRank + 1){
 						return false;
+					}
+					//EN PASSANT
+					if (moveList.tail.piece.name.includes("Pawn")){
+						if (parseInt(moveList.tail.oldSquare.rank) == 7 && parseInt(moveList.tail.newSquare.rank) == 5){
+							if (newSquare.rank == 6 && Math.abs(file.indexOf(newSquare.file)) == file.indexOf(moveList.tail.newSquare.file)){
+								console.log("En passant capture!")
+								enPassant = true;
+								return "Capture";
+							}
+						}
 					}
 				}
 				//IF PIECE IN FRONT OF PAWN
@@ -629,6 +634,16 @@ function checkMove(piece, newSquare, player, boolean, exclude){
 				else {
 					if (newSquare.rank < pieceRank - 1){
 						return false;
+					}
+					//EN PASSANT
+					if (moveList.tail.piece.name.includes("Pawn")){
+						if (parseInt(moveList.tail.oldSquare.rank) == 2 && parseInt(moveList.tail.newSquare.rank) == 4){
+							if (newSquare.rank == 3 && Math.abs(file.indexOf(newSquare.file)) == file.indexOf(moveList.tail.newSquare.file)+1){
+								console.log("En passant capture!")
+								return "Capture";
+								enPassant = true;
+							}
+						}
 					}
 				}
 				//IF PIECE IN FRONT OF PAWN
@@ -1603,7 +1618,7 @@ function setMessages(){
 }
 
 //
-//DB QUERY FUNCTIONS
+//GAME FUNCTIONS
 //
 
 function readyMove(){
@@ -1923,9 +1938,25 @@ function upListener (e){
 		}
 		else if (move == "Capture"){
 			console.log("CAPTURE!!!");
-			let ogNewSquare = $.extend({}, newSquare);
-			capturedPiece = newSquare.piece;
-			let moveThisPiece = movePiece(piece, newSquare, player, true, newSquare.piece);
+			let moveThisPiece = null;
+			let ogNewSquare = null;
+			console.log(board[newSquare.file+(newSquare.rank+1)]);
+			if (enPassant == true){
+				if (checkTurn == "white"){
+					ogNewSquare = $.extend({}, board[newSquare.file+(newSquare.rank-1)]);
+					capturedPiece = ogNewSquare.piece;
+				}
+				else if (checkTurn == "black"){
+					ogNewSquare = $.extend({}, board[newSquare.file+(newSquare.rank+1)]);
+					capturedPiece = ogNewSquare.piece;
+				}
+				moveThisPiece = movePiece(piece, newSquare, player, true, ogNewSquare.piece);
+			}
+			else {
+				ogNewSquare = $.extend({}, newSquare);
+				capturedPiece = newSquare.piece;
+				moveThisPiece = movePiece(piece, newSquare, player, true, newSquare.piece);
+			}
 			if (moveThisPiece == true){
 				capturePiece(ogNewSquare, player);
 				updateBoard(piece, board[piece.square]);
@@ -1939,7 +1970,6 @@ function upListener (e){
 					turn.inCheck = false;
 					turn = nextTurn();
 				}
-				
 			}
 			else{
 				console.log("ILLEGAL MOVE");
